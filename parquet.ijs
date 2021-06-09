@@ -30,7 +30,9 @@ gpafrrt=:libp,'gparquet_arrow_file_reader_read_table * * *'
 gatgnc=:libp,'garrow_table_get_n_columns i *'
 gatgnr=:libp,'garrow_table_get_n_rows l *'
 gatgs=:libp,'garrow_table_get_schema * *'
+gatts=:libp,'garrow_table_to_string *c * *'
 gasts=:libp,'garrow_schema_to_string *c *'
+
 
 NB. TODO: the error parameters are **GError in the c declarations, 
 NB. I think they should be *x in j, check the dll labs.
@@ -51,5 +53,11 @@ st=.>{.gasts cd <(0{s) NB. pointer to schema text
 memr st,0,_1
 NB. a: int64
 NB. b: int64
+ts=.>gatts cd ({.t) ; <<e
+memr ts,0,_1
 
 memf e
+
+
+
+
