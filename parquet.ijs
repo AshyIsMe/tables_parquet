@@ -36,7 +36,6 @@ NB. GArrowDataType
 gadtts=:libp,'garrow_data_type_to_string *c *'
 gadtgi=:libp,'garrow_data_type_get_id i *' NB. GArrowType enum
 
-
 NB. GArrowArray
 gaagvdt=:libp,'garrow_array_get_value_data_type * *'
 NB. GArrowInt64Array
@@ -51,6 +50,57 @@ s
 
 schemastringToCols=: 3 : '}:"1 <;._1"1 '':'',"1 > <;._1 LF, y'
 
+readGArrowInt64Array=: 3 : 0
+l=.mema 8
+v=.>{.gai64agvs cd y ; <<l
+len=.memr l,0,1,4
+memf l
+memr v,0,len,4
+)
+
+NB. GArrowType enum from arrow-glib/type.h
+ga_NA =: 3 : '''GARROW_TYPE_NA_Array NOT IMPLEMENTED'''
+ga_BOOLEAN =: 3 : '''GARROW_TYPE_BOOLEAN_Array NOT IMPLEMENTED'''
+ga_UINT8 =: 3 : '''GARROW_TYPE_UINT8_Array NOT IMPLEMENTED'''
+ga_INT8 =: 3 : '''GARROW_TYPE_INT8_Array NOT IMPLEMENTED'''
+ga_UINT16 =: 3 : '''GARROW_TYPE_UINT16_Array NOT IMPLEMENTED'''
+ga_INT16 =: 3 : '''GARROW_TYPE_INT16_Array NOT IMPLEMENTED'''
+ga_UINT32 =: 3 : '''GARROW_TYPE_UINT32_Array NOT IMPLEMENTED'''
+ga_INT32 =: 3 : '''GARROW_TYPE_INT32_Array NOT IMPLEMENTED'''
+ga_UINT64 =: 3 : '''GARROW_TYPE_UINT64_Array NOT IMPLEMENTED'''
+ga_INT64 =: readGArrowInt64Array
+ga_HALF_FLOAT =: 3 : '''GARROW_TYPE_HALF_FLOAT_Array NOT IMPLEMENTED'''
+ga_FLOAT =: 3 : '''GARROW_TYPE_FLOAT_Array NOT IMPLEMENTED'''
+ga_DOUBLE =: 3 : '''GARROW_TYPE_DOUBLE_Array NOT IMPLEMENTED'''
+ga_STRING =: 3 : '''GARROW_TYPE_STRING_Array NOT IMPLEMENTED'''
+ga_BINARY =: 3 : '''GARROW_TYPE_BINARY_Array NOT IMPLEMENTED'''
+ga_FIXED_SIZE_BINARY =: 3 : '''GARROW_TYPE_FIXED_SIZE_BINARY_Array NOT IMPLEMENTED'''
+ga_DATE32 =: 3 : '''GARROW_TYPE_DATE32_Array NOT IMPLEMENTED'''
+ga_DATE64 =: 3 : '''GARROW_TYPE_DATE64_Array NOT IMPLEMENTED'''
+ga_TIMESTAMP =: 3 : '''GARROW_TYPE_TIMESTAMP_Array NOT IMPLEMENTED'''
+ga_TIME32 =: 3 : '''GARROW_TYPE_TIME32_Array NOT IMPLEMENTED'''
+ga_TIME64 =: 3 : '''GARROW_TYPE_TIME64_Array NOT IMPLEMENTED'''
+ga_INTERVAL_MONTHS =: 3 : '''GARROW_TYPE_INTERVAL_MONTHS_Array NOT IMPLEMENTED'''
+ga_INTERVAL_DAY_TIME =: 3 : '''GARROW_TYPE_INTERVAL_DAY_TIME_Array NOT IMPLEMENTED'''
+ga_DECIMAL128 =: 3 : '''GARROW_TYPE_DECIMAL128_Array NOT IMPLEMENTED'''
+ga_DECIMAL256 =: 3 : '''GARROW_TYPE_DECIMAL256_Array NOT IMPLEMENTED'''
+ga_LIST =: 3 : '''GARROW_TYPE_LIST_Array NOT IMPLEMENTED'''
+ga_STRUCT =: 3 : '''GARROW_TYPE_STRUCT_Array NOT IMPLEMENTED'''
+ga_SPARSE_UNION =: 3 : '''GARROW_TYPE_SPARSE_UNION_Array NOT IMPLEMENTED'''
+ga_DENSE_UNION =: 3 : '''GARROW_TYPE_DENSE_UNION_Array NOT IMPLEMENTED'''
+ga_DICTIONARY =: 3 : '''GARROW_TYPE_DICTIONARY_Array NOT IMPLEMENTED'''
+ga_MAP =: 3 : '''GARROW_TYPE_MAP_Array NOT IMPLEMENTED'''
+ga_EXTENSION =: 3 : '''GARROW_TYPE_EXTENSION_Array NOT IMPLEMENTED'''
+ga_FIXED_SIZE_LIST =: 3 : '''GARROW_TYPE_FIXED_SIZE_LIST_Array NOT IMPLEMENTED'''
+ga_DURATION =: 3 : '''GARROW_TYPE_DURATION_Array NOT IMPLEMENTED'''
+ga_LARGE_STRING =: 3 : '''GARROW_TYPE_LARGE_STRING_Array NOT IMPLEMENTED'''
+ga_LARGE_BINARY =: 3 : '''GARROW_TYPE_LARGE_BINARY_Array NOT IMPLEMENTED'''
+ga_LARGE_LIST =: 3 : '''GARROW_TYPE_LARGE_LIST_Array NOT IMPLEMENTED'''
+
+NB. Gerund of reader verbs in index order of GArrowType enum values
+readers=:ga_NA`ga_BOOLEAN`ga_UINT8`ga_INT8`ga_UINT16`ga_INT16`ga_UINT32`ga_INT32`ga_UINT64`ga_INT64`ga_HALF_FLOAT`ga_FLOAT`ga_DOUBLE`ga_STRING`ga_BINARY`ga_FIXED_SIZE_BINARY`ga_DATE32`ga_DATE64`ga_TIMESTAMP`ga_TIME32`ga_TIME64`ga_INTERVAL_MONTHS`ga_INTERVAL_DAY_TIME`ga_DECIMAL128`ga_DECIMAL256`ga_LIST`ga_STRUCT`ga_SPARSE_UNION`ga_DENSE_UNION`ga_DICTIONARY`ga_MAP`ga_EXTENSION`ga_FIXED_SIZE_LIST`ga_DURATION`ga_LARGE_STRING`ga_LARGE_BINARY`ga_LARGE_LIST
+readcol=: 4 : '< (readers@.x y)'
+
 readparquetToString=: 3 : 0
 e=.mema 4 NB. pointer to int32 for error codes
 r=.{.gpafr cd y ; <<e NB. New GParquetArrowFileReader*
@@ -60,6 +110,15 @@ memf e
 tablestring=.readgchars ts
 )
 
+readTableCols=: 4 : 0
+NB. x=indexes, y=GArrowTable*
+ca=.{."1 gatgcd cd y (;"1 0) x NB. GArrowChunkedArray
+dts =. {."1 gacagvdt cd"1 0 <"0 ca
+typeids =. >{."1 gadtgi cd"1 0 <"0 dts
+chunksi=. i."0 >{."1 gacagnc cd"1 0 <"0 ca
+chunks=.{."1 gacagc cd (<"0 ca) ,. <"0 chunksi
+typeids readcol"0 0 chunks
+)
 
 NB. GArrow Arrays are all immutable and internally refcounted, can we ignore cleanup?
 NB. Use g_free() for these glib objects?  domain error currently
@@ -80,66 +139,3 @@ cols=.schemastringToCols sts
 cols,.table
 )
 
-f=:jpath '~/Downloads/test.parquet' NB. TESTING
-
-readTableCols=: 4 : 0
-NB. x=indexes, y=GArrowTable*
-ca=.{."1 gatgcd cd y (;"1 0) x NB. GArrowChunkedArray
-dts =. {."1 gacagvdt cd"1 0 <"0 ca
-typeids =. >{."1 gadtgi cd"1 0 <"0 dts
-chunksi=. i."0 >{."1 gacagnc cd"1 0 <"0 ca
-chunks=.{."1 gacagc cd (<"0 ca) ,. <"0 chunksi
-typeids readcol"0 0 chunks
-)
-
-
-readGArrowInt64Array=: 3 : 0
-l=.mema 8
-v=.>{.gai64agvs cd y ; <<l
-len=.memr l,0,1,4
-memf l
-memr v,0,len,4
-)
-
-NB. GArrowType enum from arrow-glib/type.h
-ga_NA =. 3 : '''GARROW_TYPE_NA_Array NOT IMPLEMENTED'''
-ga_BOOLEAN =. 3 : '''GARROW_TYPE_BOOLEAN_Array NOT IMPLEMENTED'''
-ga_UINT8 =. 3 : '''GARROW_TYPE_UINT8_Array NOT IMPLEMENTED'''
-ga_INT8 =. 3 : '''GARROW_TYPE_INT8_Array NOT IMPLEMENTED'''
-ga_UINT16 =. 3 : '''GARROW_TYPE_UINT16_Array NOT IMPLEMENTED'''
-ga_INT16 =. 3 : '''GARROW_TYPE_INT16_Array NOT IMPLEMENTED'''
-ga_UINT32 =. 3 : '''GARROW_TYPE_UINT32_Array NOT IMPLEMENTED'''
-ga_INT32 =. 3 : '''GARROW_TYPE_INT32_Array NOT IMPLEMENTED'''
-ga_UINT64 =. 3 : '''GARROW_TYPE_UINT64_Array NOT IMPLEMENTED'''
-ga_INT64 =. readGArrowInt64Array
-ga_HALF_FLOAT =. 3 : '''GARROW_TYPE_HALF_FLOAT_Array NOT IMPLEMENTED'''
-ga_FLOAT =. 3 : '''GARROW_TYPE_FLOAT_Array NOT IMPLEMENTED'''
-ga_DOUBLE =. 3 : '''GARROW_TYPE_DOUBLE_Array NOT IMPLEMENTED'''
-ga_STRING =. 3 : '''GARROW_TYPE_STRING_Array NOT IMPLEMENTED'''
-ga_BINARY =. 3 : '''GARROW_TYPE_BINARY_Array NOT IMPLEMENTED'''
-ga_FIXED_SIZE_BINARY =. 3 : '''GARROW_TYPE_FIXED_SIZE_BINARY_Array NOT IMPLEMENTED'''
-ga_DATE32 =. 3 : '''GARROW_TYPE_DATE32_Array NOT IMPLEMENTED'''
-ga_DATE64 =. 3 : '''GARROW_TYPE_DATE64_Array NOT IMPLEMENTED'''
-ga_TIMESTAMP =. 3 : '''GARROW_TYPE_TIMESTAMP_Array NOT IMPLEMENTED'''
-ga_TIME32 =. 3 : '''GARROW_TYPE_TIME32_Array NOT IMPLEMENTED'''
-ga_TIME64 =. 3 : '''GARROW_TYPE_TIME64_Array NOT IMPLEMENTED'''
-ga_INTERVAL_MONTHS =. 3 : '''GARROW_TYPE_INTERVAL_MONTHS_Array NOT IMPLEMENTED'''
-ga_INTERVAL_DAY_TIME =. 3 : '''GARROW_TYPE_INTERVAL_DAY_TIME_Array NOT IMPLEMENTED'''
-ga_DECIMAL128 =. 3 : '''GARROW_TYPE_DECIMAL128_Array NOT IMPLEMENTED'''
-ga_DECIMAL256 =. 3 : '''GARROW_TYPE_DECIMAL256_Array NOT IMPLEMENTED'''
-ga_LIST =. 3 : '''GARROW_TYPE_LIST_Array NOT IMPLEMENTED'''
-ga_STRUCT =. 3 : '''GARROW_TYPE_STRUCT_Array NOT IMPLEMENTED'''
-ga_SPARSE_UNION =. 3 : '''GARROW_TYPE_SPARSE_UNION_Array NOT IMPLEMENTED'''
-ga_DENSE_UNION =. 3 : '''GARROW_TYPE_DENSE_UNION_Array NOT IMPLEMENTED'''
-ga_DICTIONARY =. 3 : '''GARROW_TYPE_DICTIONARY_Array NOT IMPLEMENTED'''
-ga_MAP =. 3 : '''GARROW_TYPE_MAP_Array NOT IMPLEMENTED'''
-ga_EXTENSION =. 3 : '''GARROW_TYPE_EXTENSION_Array NOT IMPLEMENTED'''
-ga_FIXED_SIZE_LIST =. 3 : '''GARROW_TYPE_FIXED_SIZE_LIST_Array NOT IMPLEMENTED'''
-ga_DURATION =. 3 : '''GARROW_TYPE_DURATION_Array NOT IMPLEMENTED'''
-ga_LARGE_STRING =. 3 : '''GARROW_TYPE_LARGE_STRING_Array NOT IMPLEMENTED'''
-ga_LARGE_BINARY =. 3 : '''GARROW_TYPE_LARGE_BINARY_Array NOT IMPLEMENTED'''
-ga_LARGE_LIST =. 3 : '''GARROW_TYPE_LARGE_LIST_Array NOT IMPLEMENTED'''
-
-NB. Gerund of reader verbs in index order of GArrowType enum values
-readers=.ga_NA`ga_BOOLEAN`ga_UINT8`ga_INT8`ga_UINT16`ga_INT16`ga_UINT32`ga_INT32`ga_UINT64`ga_INT64`ga_HALF_FLOAT`ga_FLOAT`ga_DOUBLE`ga_STRING`ga_BINARY`ga_FIXED_SIZE_BINARY`ga_DATE32`ga_DATE64`ga_TIMESTAMP`ga_TIME32`ga_TIME64`ga_INTERVAL_MONTHS`ga_INTERVAL_DAY_TIME`ga_DECIMAL128`ga_DECIMAL256`ga_LIST`ga_STRUCT`ga_SPARSE_UNION`ga_DENSE_UNION`ga_DICTIONARY`ga_MAP`ga_EXTENSION`ga_FIXED_SIZE_LIST`ga_DURATION`ga_LARGE_STRING`ga_LARGE_BINARY`ga_LARGE_LIST
-readcol=. 4 : '< (readers@.x y)'
