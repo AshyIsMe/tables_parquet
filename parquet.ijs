@@ -43,19 +43,18 @@ NB. GArrowInt64Array
 gai64agvs=:libp,'garrow_int64_array_get_values * * *'
 gai64agv=:libp,'garrow_int64_array_get_value l * l'
 
+readgchars =: 3 : 0
+s=. memr y,0,_1
+gfree cd <<y
+s
+)
 
+schemastringToCols=: 3 : '}:"1 <;._1"1 '':'',"1 > <;._1 LF, y'
 
 readparquetToString=: 3 : 0
 e=.mema 4 NB. pointer to int32 for error codes
 r=.{.gpafr cd y ; <<e NB. New GParquetArrowFileReader*
 t=.{.gpafrrt cd r ; <<e NB. GArrowTable*
-nrows=.{.gatgnr cd <t NB. number of rows = 8
-ncols=.{.gatgnc cd <t NB. number of columns = 2
-s=.{.gatgs cd <t NB. GArrowSchema*
-st=.>{.gasts cd <s NB. schema text gchar*
-memr st,0,_1
-NB. a: int64
-NB. b: int64
 ts=.>{.gatts cd t ; <<e
 memf e
 tablestring=.memr ts,0,_1
@@ -75,26 +74,24 @@ memf e NB. TODO Check for errors
 nrows=.>{.gatgnr cd <t NB. number of rows = 8
 ncols=.>{.gatgnc cd <t NB. number of columns = 2
 table =. (i. ncols) readTableCol t
-NB. TODO: join column names to table
-table
+
+
+s=.{.gatgs cd <t NB. GArrowSchema*
+sts=.readgchars >{.gasts cd <s
+cols=.schemastringToCols sts
+
+cols,.table
 )
 
 f=:jpath '~/Downloads/test.parquet' NB. TESTING
 
-NB. TODO: check datatype of each col and call correct readTYPE verb
-NB. dt =. {.gacagvdt cd <ca NB. GArrowDataType. TODO GArrowDataType -> to GArrowType enum
-NB. dts=.>{.gadtts cd <dt
-NB. dts=.memr dts,0,_1
 readTableCol=: 4 : 0
 NB. x=indexes, y=GArrowTable*
 ca=.{."1 gatgcd cd y (;"1 0) x NB. GArrowChunkedArray
-
 dts =. {."1 gacagvdt cd"1 0 <"0 ca
 typeids =. >{."1 gadtgi cd"1 0 <"0 dts
-
 chunksi=. i."0 >{."1 gacagnc cd"1 0 <"0 ca
 chunks=.{."1 gacagc cd (<"0 ca) ,. <"0 chunksi
-NB. readGArrowInt64Array"0 chunks
 typeids readcol"0 0 chunks
 )
 
