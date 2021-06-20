@@ -42,6 +42,8 @@ NB. GArrowInt64Array
 gai64agvs=:libp,'garrow_int64_array_get_values * * *'
 gai64agv=:libp,'garrow_int64_array_get_value l * l'
 
+gadagvs=:libp,'garrow_double_array_get_values * * *'
+
 readgchars =: 3 : 0
 s=. memr y,0,_1
 gfree cd <<y
@@ -58,6 +60,14 @@ memf l
 memr v,0,len,4
 )
 
+readGArrowDoubleArray=: 3 : 0
+l=.mema 8
+v=.>{.gadagvs cd y ; <<l
+len=.memr l,0,1,4
+memf l
+memr v,0,len,8
+)
+
 NB. GArrowType enum from arrow-glib/type.h
 ga_NA =: 3 : '''GARROW_TYPE_NA_Array NOT IMPLEMENTED'''
 ga_BOOLEAN =: 3 : '''GARROW_TYPE_BOOLEAN_Array NOT IMPLEMENTED'''
@@ -71,7 +81,7 @@ ga_UINT64 =: 3 : '''GARROW_TYPE_UINT64_Array NOT IMPLEMENTED'''
 ga_INT64 =: readGArrowInt64Array
 ga_HALF_FLOAT =: 3 : '''GARROW_TYPE_HALF_FLOAT_Array NOT IMPLEMENTED'''
 ga_FLOAT =: 3 : '''GARROW_TYPE_FLOAT_Array NOT IMPLEMENTED'''
-ga_DOUBLE =: 3 : '''GARROW_TYPE_DOUBLE_Array NOT IMPLEMENTED'''
+ga_DOUBLE =: readGArrowDoubleArray
 ga_STRING =: 3 : '''GARROW_TYPE_STRING_Array NOT IMPLEMENTED'''
 ga_BINARY =: 3 : '''GARROW_TYPE_BINARY_Array NOT IMPLEMENTED'''
 ga_FIXED_SIZE_BINARY =: 3 : '''GARROW_TYPE_FIXED_SIZE_BINARY_Array NOT IMPLEMENTED'''
