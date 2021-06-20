@@ -79,6 +79,7 @@ NB. TODO: join column names to table
 table
 )
 
+f=:jpath '~/Downloads/test.parquet' NB. TESTING
 
 NB. TODO: check datatype of each col and call correct readTYPE verb
 NB. dt =. {.gacagvdt cd <ca NB. GArrowDataType. TODO GArrowDataType -> to GArrowType enum
@@ -88,13 +89,15 @@ readTableCol=: 4 : 0
 NB. x=indexes, y=GArrowTable*
 ca=.{."1 gatgcd cd y (;"1 0) x NB. GArrowChunkedArray
 
-NB. dts =. {."1 gacagvdt cd"1 0 <"0 ca
-NB. typeids =. ... gadtgi ...
+dts =. {."1 gacagvdt cd"1 0 <"0 ca
+typeids =. >{."1 gadtgi cd"1 0 <"0 dts
 
 chunksi=. i."0 >{."1 gacagnc cd"1 0 <"0 ca
 chunks=.{."1 gacagc cd (<"0 ca) ,. <"0 chunksi
-readGArrowInt64Array"0 chunks
+NB. readGArrowInt64Array"0 chunks
+typeids readcol"0 0 chunks
 )
+
 
 readGArrowInt64Array=: 3 : 0
 l=.mema 8
@@ -103,9 +106,6 @@ len=.memr l,0,1,4
 memf l
 memr v,0,len,4
 )
-
-
-
 
 NB. GArrowType enum from arrow-glib/type.h
 ga_NA =. 3 : '''GARROW_TYPE_NA_Array NOT IMPLEMENTED'''
@@ -146,5 +146,6 @@ ga_LARGE_STRING =. 3 : '''GARROW_TYPE_LARGE_STRING_Array NOT IMPLEMENTED'''
 ga_LARGE_BINARY =. 3 : '''GARROW_TYPE_LARGE_BINARY_Array NOT IMPLEMENTED'''
 ga_LARGE_LIST =. 3 : '''GARROW_TYPE_LARGE_LIST_Array NOT IMPLEMENTED'''
 
-NB. Gerund. TODO: Use this gerund in readTableCol, index the gerund by GArrowType enum number
+NB. Gerund of reader verbs in index order of GArrowType enum values
 readers=.ga_NA`ga_BOOLEAN`ga_UINT8`ga_INT8`ga_UINT16`ga_INT16`ga_UINT32`ga_INT32`ga_UINT64`ga_INT64`ga_HALF_FLOAT`ga_FLOAT`ga_DOUBLE`ga_STRING`ga_BINARY`ga_FIXED_SIZE_BINARY`ga_DATE32`ga_DATE64`ga_TIMESTAMP`ga_TIME32`ga_TIME64`ga_INTERVAL_MONTHS`ga_INTERVAL_DAY_TIME`ga_DECIMAL128`ga_DECIMAL256`ga_LIST`ga_STRUCT`ga_SPARSE_UNION`ga_DENSE_UNION`ga_DICTIONARY`ga_MAP`ga_EXTENSION`ga_FIXED_SIZE_LIST`ga_DURATION`ga_LARGE_STRING`ga_LARGE_BINARY`ga_LARGE_LIST
+readcol=. 4 : '< (readers@.x y)'
