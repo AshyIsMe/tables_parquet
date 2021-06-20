@@ -57,7 +57,7 @@ r=.{.gpafr cd y ; <<e NB. New GParquetArrowFileReader*
 t=.{.gpafrrt cd r ; <<e NB. GArrowTable*
 ts=.>{.gatts cd t ; <<e
 memf e
-tablestring=.memr ts,0,_1
+tablestring=.readgchars ts
 )
 
 
@@ -73,19 +73,16 @@ t=.{.gpafrrt cd r ; <<e NB. GArrowTable*
 memf e NB. TODO Check for errors
 nrows=.>{.gatgnr cd <t NB. number of rows = 8
 ncols=.>{.gatgnc cd <t NB. number of columns = 2
-table =. (i. ncols) readTableCol t
-
-
+table =. (i. ncols) readTableCols t
 s=.{.gatgs cd <t NB. GArrowSchema*
 sts=.readgchars >{.gasts cd <s
 cols=.schemastringToCols sts
-
 cols,.table
 )
 
 f=:jpath '~/Downloads/test.parquet' NB. TESTING
 
-readTableCol=: 4 : 0
+readTableCols=: 4 : 0
 NB. x=indexes, y=GArrowTable*
 ca=.{."1 gatgcd cd y (;"1 0) x NB. GArrowChunkedArray
 dts =. {."1 gacagvdt cd"1 0 <"0 ca
